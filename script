@@ -1,0 +1,96 @@
+local LocalPlayer = game.Players.LocalPlayer
+local Character = LocalPlayer.Character
+local Backpack = LocalPlayer.Backpack
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+local ExcludeTowers = {"ToIE", "CoWS", "ToDD", "CoHaD", "ToO", "CoP", "ToWEL", "ToHM", "ToUI", "CoACT", "ToNR", "ToCT", "CoSR"} -- Towers you don't want to beat
+local SoulDifficulties = {"Insane", "Extreme", "Terrifying", "Catastrophic"}
+
+local TowersToBeat = {}
+local Names = {}
+local Times = {}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TowersInfo = require(ReplicatedStorage.TowerData.DifficultyLibrary)
+
+local Winpads
+local Teleports = game:GetService("Workspace").Teleporters
+
+if workspace:FindFirstChild("Misc") and workspace.Misc:FindFirstChild("WinPads") then
+    if workspace.Misc.WinPads:GetChildren()[2] == nil then
+        Winpads = workspace.WinPads
+    else
+        Winpads = workspace.Misc.WinPads
+    end
+else
+    Winpads = workspace.WinPads
+end
+
+for _,v in pairs(Winpads:GetChildren()) do
+    if v:IsA("BasePart") then
+        if v:FindFirstChild("MinimumTime") and v:FindFirstChild("TowerId") and not v:FindFirstChild("OverrideName") and Teleports:FindFirstChild(v.TowerId.Value) then
+            for tower,difficulty in pairs(TowersInfo[1]) do
+                if tower == v.TowerId.Value and not table.find(SoulDifficulties, difficulty) and not table.find(ExcludeTowers, tower) then
+                    table.insert(TowersToBeat, v)
+                    table.insert(Times, v.MinimumTime.Value)
+                    table.insert(Names, v.TowerId.Value)
+                end
+            end
+        end
+    end
+end
+
+local function getWinpad(id)
+    for i,v in pairs(TowersToBeat) do
+        if v.TowerId.Value == id then
+            return v
+        end
+    end
+end
+
+local ThirstWarp = Instance.new("Tool")
+ThirstWarp.Name = "Thirst Warp"
+ThirstWarp.Parent = Character
+
+local Cycle = 0
+local waitingTime = math.max(table.unpack(Times))
+
+for i,v in pairs(getconnections(LocalPlayer.Idled)) do
+	v:Disconnect()
+end
+
+for i,v in pairs(Teleports:GetChildren()) do
+    if v:IsA("Folder") and table.find(Names, v.Name) then
+        task.wait(2)
+        firetouchinterest(HRP, v.Teleporter.TPFRAME, 0)
+        task.wait()
+        firetouchinterest(HRP, v.Teleporter.TPFRAME, 1)
+        repeat task.wait() until Character.Humanoid:FindFirstChild("InTower")
+        Cycle = Cycle + 1
+        if Cycle == 1 then
+            local countdown = Instance.new("Hint")
+            countdown.Parent = workspace
+
+            for i = waitingTime,0,-1 do
+                countdown.Text = i
+                task.wait(1)
+            end
+            countdown.Text = "Ready"
+
+            task.wait(1)
+            local wp = getWinpad(v.Name)
+            firetouchinterest(HRP, wp, 0)
+            task.wait()
+            firetouchinterest(HRP, wp, 1)
+        else
+            task.wait(12)
+            local wp = getWinpad(v.Name)
+            firetouchinterest(HRP, wp, 0)
+             task.wait()
+            firetouchinterest(HRP, wp, 1)
+        end
+    end
+end
+
+local done = Instance.new("Message", workspace)
+done.Text = "COMPLETE!"
