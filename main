@@ -1,6 +1,6 @@
 warn("Loading UI")
 
-local Library=loadstring(game:HttpGet("https://raw.githubusercontent.com/yesok3877/not-wallys-ui-lib/master/UILib", true))()
+local Library=loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/UI-Librarys/main/Wally%20UI%20v3", true))()
 
 local WindowName="Celestial v1.8c"
 local WindowYSize=545
